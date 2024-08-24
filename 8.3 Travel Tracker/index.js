@@ -65,8 +65,10 @@ app.post("/add", async (req,res) => {
     console.log(result.rows[0].country_code)
     // res.render("index.ejs", {error:error})
   }
+  console.log("Testing")
   
   res.redirect("/");
+  //doing s
 })
 
 
