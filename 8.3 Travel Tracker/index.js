@@ -67,6 +67,7 @@ app.post("/add", async (req,res) => {
   }
   
   res.redirect("/");
+  //doing s
 })
 
 
