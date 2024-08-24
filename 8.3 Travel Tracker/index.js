@@ -33,42 +33,48 @@ db.connect();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-app.get("/", async (req, res) => {
-  //Write your code here.
-  let result;
+async function checkVisisted() {
+  let response;
   try {
-    result = await db.query("SELECT country_code FROM visited_countries");
+    response = await db.query("SELECT country_code FROM visited_countries");
   } catch (error) {
     console.log(error);
   }
-    result.rows.forEach(country => {
-      visited.push(country.country_code)
-    });
+  visited=[];
+  response.rows.forEach(country => {
+    visited.push(country.country_code)
+  });
+}
+
+
+app.get("/", async (req, res) => {
+  //Write your code here.
+  await checkVisisted();
 
   console.log(visited);
-  res.render("index.ejs", {countries:visited,total:result.rowCount});
+  res.render("index.ejs", {countries:visited,total:visited.length});
 });
 
 app.post("/add", async (req,res) => {
   let result;
   
   try {
-    result = await db.query("SELECT country_code FROM countries WHERE country_name = $1",[req.body.country]);
+    result = await db.query("SELECT country_code FROM countries WHERE country_name LIKE '%' || $1 || '%'",[req.body.country]);
   } catch (error) {
     console.log(error)
     // res.render("index.ejs", {error:error})
   }
   try {
-    const b = await db.query("INSERT INTO visited_countries (country_code) VALUES ($1)",[result.rows[0].country_code]);
+    await db.query("INSERT INTO visited_countries (country_code) VALUES ($1)",[result.rows[0].country_code]);
+    res.redirect("/"); 
   } catch (error) {
-    console.log(error)
-    console.log(result.rows[0].country_code)
+    // console.log(error)
+    console.log(result.rows[0].country_code);
+    // console.log(error[0]);
+    await checkVisisted();
+    res.render("index.ejs", {error:error.detail,countries:visited,total:visited.length})
     // res.render("index.ejs", {error:error})
   }
-  console.log("Database try catch add")
-  
-  res.redirect("/");
-  //doing s
 })
 
 
