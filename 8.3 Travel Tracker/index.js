@@ -10,7 +10,7 @@ const db = new pg.Client({
   host: "localhost",
   database: "world",
   password: "776286",
-  port: 5432
+  port: 5432,
 });
 
 let visited = [];
@@ -29,55 +29,74 @@ let visited = [];
 
 db.connect();
 
-
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 async function checkVisisted() {
   let response;
   try {
-    response = await db.query("SELECT country_code FROM visited_countries");
+    response = await db.query("SELECT country_code FROM visited_countries;");
   } catch (error) {
     console.log(error);
   }
-  visited=[];
-  response.rows.forEach(country => {
-    visited.push(country.country_code)
+  visited = [];
+  response.rows.forEach((country) => {
+    visited.push(country.country_code);
   });
 }
-
 
 app.get("/", async (req, res) => {
   //Write your code here.
   await checkVisisted();
 
   console.log(visited);
-  res.render("index.ejs", {countries:visited,total:visited.length});
+  res.render("index.ejs", { countries: visited, total: visited.length });
 });
 
-app.post("/add", async (req,res) => {
+app.post("/add", async (req, res) => {
   let result;
-  
+
   try {
-    result = await db.query("SELECT country_code FROM countries WHERE country_name LIKE '%' || $1 || '%'",[req.body.country]);
+    result = await db.query(
+      "SELECT country_code FROM countries WHERE LOWER(country_name) LIKE '%' || $1 || '%';",
+      [req.body.country.toLowerCase()]
+    );
+    // console.log(result);
+
+    if (result.rowCount > 0) {
+      try {
+        await db.query(
+          "INSERT INTO visited_countries (country_code) VALUES ($1);",
+          [result.rows[0].country_code]
+        );
+        res.redirect("/");
+      } catch (error) {
+        // console.log(error)
+        await checkVisisted();
+        res.render("index.ejs", {
+          error: error.detail,
+          countries: visited,
+          total: visited.length,
+        });
+      }
+    } else {
+      await checkVisisted();
+      res.render("index.ejs", {
+        error: "Country Not Found, Please check",
+        countries: visited,
+        total: visited.length,
+      });
+    }
   } catch (error) {
-    console.log(error)
-    // res.render("index.ejs", {error:error})
-  }
-  try {
-    await db.query("INSERT INTO visited_countries (country_code) VALUES ($1)",[result.rows[0].country_code]);
-    res.redirect("/"); 
-  } catch (error) {
-    // console.log(error)
-    console.log(result.rows[0].country_code);
-    // console.log(error[0]);
+    console.log(error);
     await checkVisisted();
-    res.render("index.ejs", {error:error.detail,countries:visited,total:visited.length})
-    // res.render("index.ejs", {error:error})
+    res.render("index.ejs", {
+      error: error.detail,
+      countries: visited,
+      total: visited.length,
+    });
   }
-})
-
-
+});
 
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);

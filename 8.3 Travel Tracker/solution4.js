@@ -9,7 +9,7 @@ const db = new pg.Client({
   user: "postgres",
   host: "localhost",
   database: "world",
-  password: "123456",
+  password: "776286",
   port: 5432,
 });
 db.connect();
@@ -28,7 +28,7 @@ async function checkVisisted() {
 // GET home page
 app.get("/", async (req, res) => {
   const countries = await checkVisisted();
-  res.render("index.ejs", { countries: countries, total: countries.length });
+  res.render("index.ejs", { countries: countries, total: countries.length }); 
 });
 
 //INSERT new country
