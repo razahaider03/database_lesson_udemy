@@ -19,10 +19,13 @@ app.use(express.static("public"));
 
 let currentUserId = 1;
 let users = [];
+let currUser = {};
 
 async function fetchUsers() {
   // console.log((await db.query("SELECT * FROM users;")).rows);
   users = (await db.query("SELECT * FROM users;")).rows;
+  currUser = users.find((user) => user.id == currentUserId) ;
+  console.log(currUser)
   return users;
 }
 
@@ -48,7 +51,7 @@ app.get("/", async (req, res) => {
     countries: countries,
     total: countries.length,
     users: users,
-    color: "teal",
+    color: currUser.color,
   });
 });
 app.post("/add", async (req, res) => {
