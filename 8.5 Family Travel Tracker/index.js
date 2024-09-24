@@ -26,11 +26,11 @@ async function fetchUsers() {
   return users;
 }
 
-
 async function checkVisisted(currentUserId) {
   console.log(currentUserId);
   const result = await db.query(
-    "SELECT country_code FROM visited_countries JOIN users ON users.id = visited_countries.user_id WHERE users.id = $1;", [currentUserId]
+    "SELECT country_code FROM visited_countries JOIN users ON users.id = visited_countries.user_id WHERE users.id = $1;",
+    [currentUserId]
   );
   let countries = [];
   result.rows.forEach((country) => {
@@ -77,27 +77,29 @@ app.post("/add", async (req, res) => {
   }
 });
 app.post("/user", async (req, res) => {
-  currentUserId = parseInt(req.body.user);
-  // console.log(req.body); 
-  const countries = await checkVisisted(currentUserId);
-  console.log(countries)
-  res.render("index.ejs", {
-    countries: countries,
-    total: countries.length,
-    users: users,
-    color: "teal",
-  });
-  
+  if (req.body.add) {
+    res.render("new.ejs");
+  } else {
+    try {
+      currentUserId = parseInt(req.body.user);
+      res.redirect("/");
+    } catch (error) {
+      console.log(req.body, error.error);
+    }
+  }
 });
 
 app.post("/new", async (req, res) => {
   //Hint: The RETURNING keyword can return the data that was inserted.
   //https://www.postgresql.org/docs/current/dml-returning.html
-  currentUserId = await db.query(
+  // console.log(req.body);
+  const returnId = await db.query(
     "INSERT INTO users (name, color) VALUES ($1, $2) RETURNING id",
-    [req.body, req.body]
+    [req.body.name, req.body.color]
   );
-
+  currentUserId = returnId.rows[0].id;
+  // console.log(returnId);
+  res.redirect("/");
 });
 
 app.listen(port, () => {
