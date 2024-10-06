@@ -27,20 +27,29 @@ async function getItems() {
 }
 
 
-app.get("/", (req, res) => {
+app.get("/", async (req, res) => {
+  items = await getItems();
   res.render("index.ejs", {
     listTitle: "Today",
     listItems: items,
   });
 });
 
-app.post("/add", (req, res) => {
+app.post("/add", async (req, res) => {
   const item = req.body.newItem;
-  items.push({ title: item });
+  try {
+    await db.query("INSERT INTO items (title) VALUES ($1);",[item])
+  } catch (error) {
+    console.log(error)
+  }
+  // items.push({ title: item });
+
   res.redirect("/");
 });
 
-app.post("/edit", (req, res) => {});
+app.post("/edit", (req, res) => {
+  
+});
 
 app.post("/delete", (req, res) => {});
 
