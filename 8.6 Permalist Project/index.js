@@ -1,6 +1,9 @@
 import express from "express";
 import bodyParser from "body-parser";
 import pg from "pg";
+import dotenv from 'dotenv'
+
+dotenv.config();
 
 const app = express();
 const port = 3000;
@@ -8,13 +11,16 @@ const port = 3000;
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
+
 const db = new pg.Client({
-  user: "razahaider",
-  host: "140.245.212.134",
-  database: "Permalist",
-  password: "7909@Raza",
-  port: 5432,
+  user: process.env.DBUSER,
+  host: process.env.HOST,
+  database: process.env.DB,
+  password: process.env.PSWD,
+  port: process.env.DBPORT,
 });
+
+
 db.connect();
 
 let items;
